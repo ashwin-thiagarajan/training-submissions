@@ -18,7 +18,7 @@ def test_convert_currency_success(api_client):
     assert data["amount"] == 100.5
     assert data["from_currency"] == "USD"
     assert data["converted_amount"] == 7437.0
-    assert data["conversion_rate"] == 74.0
+    assert data["rate"] == 74.0
 
 
 @pytest.mark.django_db

@@ -58,7 +58,7 @@ class TestOrderAPI:
         response = api_client.post("/api/v1/orders/", payload, format="json")
         assert response.status_code == 400
         assert "error" in response.data
-        assert response.data["error"]["code"] == "BAD_REQUEST"
+        assert response.data["error"]["code"] == "VALIDATION_ERROR"
 
     def test_insufficient_stock(self, api_client, setup_data):
         """Test 409 Conflict when requesting more than available stock."""

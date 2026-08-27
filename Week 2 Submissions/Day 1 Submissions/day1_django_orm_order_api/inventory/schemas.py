@@ -1,5 +1,5 @@
 from decimal import Decimal
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, StrictStr
 
 class ProductInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -15,7 +15,7 @@ class CustomerInput(BaseModel):
 
     first_name: StrictStr = Field(min_length=2, max_length=50)
     last_name: StrictStr = Field(min_length=2, max_length=50)
-    email: StrictStr = Field(min_length=5, max_length=100)
+    email: EmailStr
     phone_number: StrictStr | None = Field(default=None, min_length=7, max_length=15)
     address: StrictStr | None = Field(default=None, min_length=5, max_length=200)
 

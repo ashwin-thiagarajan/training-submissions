@@ -1,3 +1,20 @@
+# Python and test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environments and secrets
+venv/
+.venv/
+.env
+!.env.example
+!.env.sample
+
+# Generated local output
+inventory.txt
+db.sqlite3
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

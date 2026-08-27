@@ -23,7 +23,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderDetailSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer(read_only=True)
-    items = OrderItemSerializer(many=True, read_only=True, source='orderitem_set')
+    items = OrderItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order

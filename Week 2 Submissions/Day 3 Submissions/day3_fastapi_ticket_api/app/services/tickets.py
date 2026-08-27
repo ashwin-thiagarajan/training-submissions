@@ -1,24 +1,24 @@
-from app.schemas.tickets import TicketClassifyRequest, TicketClassifyResponse, CustomerTier, TickettPriority, TicketRecommendedTeam
+from app.schemas.tickets import TicketClassifyRequest, TicketClassifyResponse, CustomerTier, TicketPriority, TicketRecommendedTeam
 
 def classify_ticket(payload: TicketClassifyRequest) -> TicketClassifyResponse:
     if payload.system_down:
-        priority = TickettPriority.CRITICAL
+        priority = TicketPriority.CRITICAL
         recommended_team = TicketRecommendedTeam.SRE
         reasons = ["System is down"]
     elif payload.affected_users > 1000:
-        priority = TickettPriority.HIGH
+        priority = TicketPriority.HIGH
         recommended_team = TicketRecommendedTeam.ENGINEERING
         reasons = ["High number of affected users"]
     elif payload.customer_tier == CustomerTier.ENTERPRISE:
-        priority = TickettPriority.HIGH
+        priority = TicketPriority.HIGH
         recommended_team = TicketRecommendedTeam.SUPPORT
         reasons = ["Enterprise customer"]
     elif payload.customer_tier == CustomerTier.PREMIUM:
-        priority = TickettPriority.MEDIUM
+        priority = TicketPriority.MEDIUM
         recommended_team = TicketRecommendedTeam.SUPPORT
         reasons = ["Premium customer"]
     else:
-        priority = TickettPriority.LOW
+        priority = TicketPriority.LOW
         recommended_team = TicketRecommendedTeam.SUPPORT
         reasons = ["Standard or Free customer"]
     return TicketClassifyResponse(

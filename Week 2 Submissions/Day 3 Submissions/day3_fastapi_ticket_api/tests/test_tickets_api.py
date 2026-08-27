@@ -23,7 +23,7 @@ def test_invalid_ticket_data_returns_422() -> None:
     response = client.post(
         "/api/v1/tickets/classify",
         json={
-            "title": "Invalid Ticket",
+            "title": "Bad",
             "description": "This is an invalid ticket.",
             "customer_tier": "PREMIUM",
             "affected_users": 2500,
@@ -31,5 +31,5 @@ def test_invalid_ticket_data_returns_422() -> None:
         },
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 422
 

@@ -25,5 +25,5 @@ def convert_currency(amount: float, from_currency: str, to_currency: str)-> Conv
         converted_amount=converted_amount,
         from_currency=from_currency,
         to_currency=to_currency,
-        conversion_rate=actual_rate
+        rate=actual_rate
     )

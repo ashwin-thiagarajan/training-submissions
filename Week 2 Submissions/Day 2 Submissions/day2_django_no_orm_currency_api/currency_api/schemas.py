@@ -24,7 +24,7 @@ class ConversionResponseSchema(BaseModel):
     converted_amount: float = Field(..., description="Converted amount")
     from_currency: str = Field(..., min_length=3, max_length=3)
     to_currency: str = Field(..., min_length=3, max_length=3)
-    conversion_rate: float = Field(..., description="Conversion rate used for the conversion")
+    rate: float = Field(..., description="Conversion rate used for the conversion")
 
     @field_validator('converted_amount')
     @classmethod

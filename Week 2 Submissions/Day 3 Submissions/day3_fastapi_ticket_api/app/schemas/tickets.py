@@ -9,7 +9,7 @@ class CustomerTier(str, Enum):
     PREMIUM = "PREMIUM"
     ENTERPRISE = "ENTERPRISE"
 
-class TickettPriority(str, Enum):
+class TicketPriority(str, Enum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
@@ -33,7 +33,7 @@ class TicketClassifyRequest(BaseModel):
 class TicketClassifyResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    priority: TickettPriority
+    priority: TicketPriority
     recommended_team: TicketRecommendedTeam
     reasons : list[str] = Field(min_length=1, max_length=5)
 

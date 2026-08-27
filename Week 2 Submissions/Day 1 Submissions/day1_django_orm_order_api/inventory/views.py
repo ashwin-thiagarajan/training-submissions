@@ -1,4 +1,5 @@
 import logging
+from pydantic import ValidationError
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -21,6 +22,10 @@ from .services import (
 
 logger = logging.getLogger(__name__)
 
+
+def error_response(code: str, message: str, details: list | None = None) -> dict:
+    return {"error": {"code": code, "message": message, "details": details or []}}
+
 class CustomerCreateView(APIView):
     def post(self, request):
         try:
@@ -28,15 +33,12 @@ class CustomerCreateView(APIView):
             serializer = CustomerSerializer(customer)
             logger.info(f"Customer created successfully: ID {customer.id}")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            logger.error(f"Failed to create customer: {str(e)}")
-            return Response({
-                "error": {
-                    "code": "BAD_REQUEST",
-                    "message": "Invalid request payload",
-                    "details": [str(e)]
-                }       
-            }, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as exc:
+            logger.info("Customer validation failed")
+            return Response(error_response("VALIDATION_ERROR", "Invalid request payload.", exc.errors()), status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            logger.exception("Failed to create customer")
+            return Response(error_response("INTERNAL_ERROR", "Internal server error."), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ProductCreateView(APIView):
@@ -46,15 +48,12 @@ class ProductCreateView(APIView):
             serializer = ProductSerializer(product)
             logger.info(f"Product created successfully: ID {product.id}")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            logger.error(f"Failed to create product: {str(e)}")
-            return Response({
-                "error": {
-                    "code":"BAD_REQUEST",
-                    "message": "Invalid request payload",
-                    "details": [str(e)]
-                }
-            }, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as exc:
+            logger.info("Product validation failed")
+            return Response(error_response("VALIDATION_ERROR", "Invalid request payload.", exc.errors()), status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            logger.exception("Failed to create product")
+            return Response(error_response("INTERNAL_ERROR", "Internal server error."), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class OrderCreateView(APIView):
@@ -85,15 +84,12 @@ class OrderCreateView(APIView):
                 }
             }, status=status.HTTP_404_NOT_FOUND)
             
-        except Exception as e: # Catches Pydantic ValidationError and others
-            logger.error(f"Order creation failed: {str(e)}")
-            return Response({
-                "error": {
-                    "code": "BAD_REQUEST",
-                    "message": "Invalid request payload.",
-                    "details": [str(e)]
-                }
-            }, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as exc:
+            logger.info("Order validation failed")
+            return Response(error_response("VALIDATION_ERROR", "Invalid request payload.", exc.errors()), status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            logger.exception("Order creation failed")
+            return Response(error_response("INTERNAL_ERROR", "Internal server error."), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class OrderDetailView(APIView):
@@ -105,7 +101,7 @@ class OrderDetailView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Order.DoesNotExist:
             logger.warning(f"Order detail requested for missing ID: {order_id}")
-            return Response({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(error_response("RESOURCE_NOT_FOUND", "The requested order was not found."), status=status.HTTP_404_NOT_FOUND)
 
 
 class OrderByCustomerView(APIView):
@@ -113,16 +109,10 @@ class OrderByCustomerView(APIView):
         try:
             orders = Order.objects.filter(customer_id=customer_id).select_related('customer').prefetch_related('items__product')
             if not orders.exists():
-                return Response({"detail": "No orders found for this customer."}, status=status.HTTP_404_NOT_FOUND)
+                return Response(error_response("RESOURCE_NOT_FOUND", "No orders were found for this customer."), status=status.HTTP_404_NOT_FOUND)
             
             serializer = OrderDetailSerializer(orders, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            logger.error(f"Error fetching orders for customer {customer_id}: {str(e)}")
-            return Response({
-                "error": {
-                    "code":"BAD_REQUEST",
-                    "message": "Invalid request payload",
-                    "details": [str(e)]
-                }
-            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            logger.exception("Error fetching orders for customer %s", customer_id)
+            return Response(error_response("INTERNAL_ERROR", "Internal server error."), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
