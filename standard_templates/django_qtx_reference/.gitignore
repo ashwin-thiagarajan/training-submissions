@@ -1,0 +1,20 @@
+# Log files
+logs
+log
+
+# Python virtual environments
+venv
+.venv
+
+# Environment variable files
+.env
+!.env.example
+
+# Ignoring VSCode specific settings
+.vscode/
+
+# Editor configuration files
+.idea
+
+# Python cache files
+*.pyc

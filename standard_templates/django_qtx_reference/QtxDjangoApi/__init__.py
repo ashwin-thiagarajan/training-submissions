@@ -1,0 +1,6 @@
+"""
+__author__ = "Ravikanth"
+__version__ ="1.0"
+__date__ = "26-09-2024"
+__copyright__ = "©2024 quadratyx"
+"""
