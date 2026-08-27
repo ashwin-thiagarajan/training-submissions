@@ -1,9 +1,11 @@
 import logging
+from typing import Any
 
 from pydantic import ValidationError
 from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .authentication import EnvironmentBasicAuthentication
@@ -14,12 +16,12 @@ from .services import get_sentiment_service
 logger = logging.getLogger(__name__)
 
 
-def error_response(code: str, message: str, details: list | None = None) -> dict:
+def error_response(code: str, message: str, details: list[Any] | None = None) -> dict:
     return {"error": {"code": code, "message": message, "details": details or []}}
 
 
 class HealthView(APIView):
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
 
 
@@ -27,7 +29,7 @@ class SentimentAnalysisView(APIView):
     authentication_classes = [EnvironmentBasicAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         try:
             payload = SentimentRequest.model_validate(request.data)
             result = get_sentiment_service().analyze(payload)

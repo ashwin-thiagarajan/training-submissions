@@ -18,7 +18,7 @@ class EnvironmentBasicAuthentication(BaseAuthentication):
     def authenticate_header(self, request: Request) -> str:
         return 'Basic realm="sentiment-api"'
 
-    def authenticate(self, request: Request):
+    def authenticate(self, request: Request) -> tuple[EnvironmentUser, None] | None:
         header = request.headers.get("Authorization", "")
         scheme, _, encoded = header.partition(" ")
         if scheme.lower() != "basic" or not encoded:

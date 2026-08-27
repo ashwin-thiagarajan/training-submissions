@@ -26,6 +26,7 @@ def test_sentiment_request_without_credentials_returns_401() -> None:
     )
 
     assert response.status_code == 401
+    assert response.data["error"]["code"] == "AUTHENTICATION_REQUIRED"
 
 
 def test_sentiment_request_with_invalid_credentials_returns_401() -> None:
@@ -40,6 +41,7 @@ def test_sentiment_request_with_invalid_credentials_returns_401() -> None:
     )
 
     assert response.status_code == 401
+    assert response.data["error"]["code"] == "AUTHENTICATION_REQUIRED"
 
 
 def test_valid_sentiment_request_returns_200() -> None:
@@ -65,4 +67,47 @@ def test_missing_text_returns_400() -> None:
     response = authenticated_client().post(reverse("sentiment-analysis"), {}, format="json")
 
     assert response.status_code == 400
+
+
+def test_empty_text_returns_400() -> None:
+    response = authenticated_client().post(
+        reverse("sentiment-analysis"), {"text": ""}, format="json"
+    )
+
+    assert response.status_code == 400
+    assert response.data["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_extra_field_returns_400() -> None:
+    response = authenticated_client().post(
+        reverse("sentiment-analysis"),
+        {"text": "A valid text.", "unexpected": True},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert response.data["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_inference_failure_returns_structured_500() -> None:
+    service = Mock()
+    from sentiment.exceptions import ModelInferenceError
+
+    service.analyze.side_effect = ModelInferenceError("internal model detail")
+
+    with patch("sentiment.views.get_sentiment_service", return_value=service):
+        response = authenticated_client().post(
+            reverse("sentiment-analysis"),
+            {"text": "A valid text."},
+            format="json",
+        )
+
+    assert response.status_code == 500
+    assert response.data == {
+        "error": {
+            "code": "MODEL_INFERENCE_ERROR",
+            "message": "Unable to analyze sentiment.",
+            "details": [],
+        }
+    }
 
