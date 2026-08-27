@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.db.models import F
 from django.core.exceptions import ObjectDoesNotExist
-from .models import Product,Customer,Order,OrderItem
+from .models import Product, Customer, Order, OrderItem
 from .schemas import ProductInput,CustomerInput,OrderInput,OrderItemInput
 
 class OrderNotFoundError(Exception):
@@ -56,12 +56,13 @@ def create_order_with_items(data:dict)->Order:
 
 def get_order(order_id:int)->Order:
     try:
-        return Order.objects.get(id=order_id)
+        return Order.objects.select_related("customer").prefetch_related("items__product").get(id=order_id)
     except ObjectDoesNotExist as exc:
         raise OrderNotFoundError("Order not found.") from exc
 
 def get_order_for_customer(customer_id:int)->list[Order]:
     try:
-        return list(Order.objects.filter(customer_id=customer_id))
+        Customer.objects.get(id=customer_id)
+        return list(Order.objects.filter(customer_id=customer_id).select_related("customer").prefetch_related("items__product"))
     except ObjectDoesNotExist as exc:
         raise OrderNotFoundError("Order not found for the customer.") from exc

@@ -1,25 +1,28 @@
 import json
 import logging
 from json import JSONDecodeError
+from typing import Any
 
 from pydantic import ValidationError
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.views import APIView
 
 from .schemas import ConversionRequestSchema
+from .exceptions import CurrencyServiceError
 from .services import convert_currency
 
 logger = logging.getLogger(__name__)
 
 
-def error_response(code: str, message: str, details: list | None = None) -> dict:
+def error_response(code: str, message: str, details: list[Any] | None = None) -> dict:
     return {"error": {"code": code, "message": message, "details": details or []}}
 
 
 class ConvertCurrencyView(APIView):
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         try:
             payload = ConversionRequestSchema.model_validate(request.data)
             result = convert_currency(
@@ -40,7 +43,8 @@ class ConvertCurrencyView(APIView):
                 ),
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except ValueError as exc:
+        except CurrencyServiceError as exc:
+            logger.warning("Currency conversion rejected: %s", exc)
             return Response(
                 error_response("VALIDATION_ERROR", str(exc)),
                 status=status.HTTP_400_BAD_REQUEST,

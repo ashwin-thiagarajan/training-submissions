@@ -1,6 +1,5 @@
 from enum import Enum
-from typing import Literal
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CustomerTier(str, Enum):
@@ -35,5 +34,5 @@ class TicketClassifyResponse(BaseModel):
 
     priority: TicketPriority
     recommended_team: TicketRecommendedTeam
-    reasons : list[str] = Field(min_length=1, max_length=5)
+    reasons: list[str] = Field(min_length=1, max_length=5)
 

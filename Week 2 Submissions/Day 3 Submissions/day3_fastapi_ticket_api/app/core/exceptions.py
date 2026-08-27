@@ -4,3 +4,8 @@ class AppError(Exception):
         self.message = message
         self.status_code = status_code
 
+
+class TicketClassificationError(AppError):
+    def __init__(self, message: str = "Ticket classification failed.") -> None:
+        super().__init__(message, status_code=500)
+

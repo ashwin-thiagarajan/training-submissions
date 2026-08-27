@@ -29,5 +29,5 @@ class OrderInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     customer_id: int
-    items: list[OrderItemInput]
+    items: list[OrderItemInput] = Field(min_length=1)
     status: StrictStr | None = Field(default="Pending", min_length=2, max_length=20)

@@ -1,6 +1,7 @@
 import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
+from unittest.mock import patch
 
 
 @pytest.fixture
@@ -60,3 +61,22 @@ def test_same_source_and_target_currency(api_client):
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+@pytest.mark.django_db
+def test_service_failure_returns_structured_500(api_client):
+    with patch("currency_api.views.convert_currency", side_effect=RuntimeError("database unavailable")):
+        response = api_client.post(
+            "/api/v1/convert-currency/",
+            {"amount": 100, "from_currency": "USD", "to_currency": "INR"},
+            format="json",
+        )
+
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert response.json() == {
+        "error": {
+            "code": "INTERNAL_ERROR",
+            "message": "Internal server error.",
+            "details": [],
+        }
+    }

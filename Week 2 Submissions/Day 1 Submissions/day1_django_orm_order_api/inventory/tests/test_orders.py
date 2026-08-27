@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from rest_framework.test import APIClient
 from inventory.models import Customer, Product, Order
 
@@ -83,3 +84,50 @@ class TestOrderAPI:
         response = api_client.get("/api/v1/orders/9999/")
         assert response.status_code == 404
         assert "error" in response.data
+
+    def test_empty_items_returns_validation_error(self, api_client, setup_data):
+        response = api_client.post(
+            "/api/v1/orders/",
+            {"customer_id": setup_data["customer"].id, "items": []},
+            format="json",
+        )
+
+        assert response.status_code == 400
+        assert response.data["error"]["code"] == "VALIDATION_ERROR"
+
+    def test_duplicate_customer_email_returns_conflict(self, api_client):
+        Customer.objects.create(first_name="Jane", last_name="Doe", email="duplicate@example.com")
+
+        response = api_client.post(
+            "/api/v1/customers/",
+            {"first_name": "Other", "last_name": "Person", "email": "duplicate@example.com"},
+            format="json",
+        )
+
+        assert response.status_code == 409
+        assert response.data["error"]["code"] == "DUPLICATE_RESOURCE"
+
+    def test_missing_customer_for_order_returns_not_found(self, api_client, setup_data):
+        response = api_client.post(
+            "/api/v1/orders/",
+            {"customer_id": 9999, "items": [{"product_id": setup_data["product"].id, "quantity": 1}]},
+            format="json",
+        )
+
+        assert response.status_code == 404
+        assert response.data["error"]["code"] == "RESOURCE_NOT_FOUND"
+
+    def test_internal_order_failure_returns_safe_500(self, api_client, setup_data):
+        with patch("inventory.views.create_order_with_items", side_effect=RuntimeError("internal details")):
+            response = api_client.post(
+                "/api/v1/orders/",
+                {"customer_id": setup_data["customer"].id, "items": [{"product_id": setup_data["product"].id, "quantity": 1}]},
+                format="json",
+            )
+
+        assert response.status_code == 500
+        assert response.data["error"] == {
+            "code": "INTERNAL_ERROR",
+            "message": "Internal server error.",
+            "details": [],
+        }

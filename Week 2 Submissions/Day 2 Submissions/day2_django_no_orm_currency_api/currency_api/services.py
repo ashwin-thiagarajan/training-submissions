@@ -1,7 +1,7 @@
-from typing import Dict
+from .exceptions import SameCurrencyError, UnsupportedCurrencyError
 from .schemas import ConversionResponseSchema
 
-CONVERSION_RATES: Dict[str, float] = {
+CONVERSION_RATES: dict[str, float] = {
     "USD": 1.0,
     "EUR": 0.85,
     "GBP": 0.75,
@@ -9,11 +9,11 @@ CONVERSION_RATES: Dict[str, float] = {
     "JPY": 110.0,
 }
 
-def convert_currency(amount: float, from_currency: str, to_currency: str)-> ConversionResponseSchema:
+def convert_currency(amount: float, from_currency: str, to_currency: str) -> ConversionResponseSchema:
     if from_currency == to_currency:
-        raise ValueError("Source and target currencies must be different.")
+        raise SameCurrencyError("Source and target currencies must be different.")
     if from_currency not in CONVERSION_RATES or to_currency not in CONVERSION_RATES:
-        raise ValueError("Invalid currency code.")
+        raise UnsupportedCurrencyError("Invalid currency code.")
     
     rate = CONVERSION_RATES[from_currency]
     target_rate = CONVERSION_RATES[to_currency]
